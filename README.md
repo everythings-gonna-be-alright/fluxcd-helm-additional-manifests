@@ -12,7 +12,7 @@ This Helm chart acts as a wrapper that deploys additional manifests (CRDs, custo
 
 ```bash
 # Add the Helm repository
-helm repo add additional-manifests https://everything-gonna-be-alright.github.io/additional-manifests
+helm repo add additional-manifests https://everything-gonna-be-alright.github.io/fluxcd-helm-additional-manifests/
 helm repo update
 
 # Install the chart
@@ -59,7 +59,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  url: https://YOUR_USERNAME.github.io/additional-manifests
+  url: https://everything-gonna-be-alright.github.io/fluxcd-helm-additional-manifests/
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
