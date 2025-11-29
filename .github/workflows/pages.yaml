@@ -1,0 +1,121 @@
+name: Publish to GitHub Pages
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.13.3'
+
+      - name: Checkout gh-pages
+        run: |
+          git fetch origin gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages || git checkout --orphan gh-pages
+          git reset --hard
+
+      - name: Download release asset
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          RELEASE_TAG="${GITHUB_REF#refs/tags/}"
+          echo "Downloading assets for release: $RELEASE_TAG"
+          
+          # Create directory for charts
+          mkdir -p charts
+          
+          # Download the chart package from the release
+          gh release download "$RELEASE_TAG" --pattern '*.tgz' --dir charts/
+          
+          # List downloaded files
+          ls -la charts/
+
+      - name: Update Helm repository index
+        run: |
+          # Generate or update the index.yaml
+          helm repo index charts --url https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          
+          # Move index to root
+          mv charts/index.yaml .
+          
+          # Create README for the repository
+          cat > README.md << 'EOF'
+          # Helm Chart Repository
+          
+          This is the Helm chart repository for additional-manifests.
+          
+          ## Usage
+          
+          Add this repository to Helm:
+          
+          ```bash
+          helm repo add additional-manifests https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          helm repo update
+          ```
+          
+          Install the chart:
+          
+          ```bash
+          helm install my-release additional-manifests/additional-manifests
+          ```
+          
+          ## Available Charts
+          
+          - **additional-manifests**: A Helm chart for rendering additional manifests with FluxCD
+          EOF
+
+      - name: Commit and push to gh-pages
+        run: |
+          git add charts/*.tgz index.yaml README.md
+          git commit -m "Update Helm repository for ${GITHUB_REF#refs/tags/}" || echo "No changes to commit"
+          git push origin gh-pages --force
+
+  deploy-pages:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

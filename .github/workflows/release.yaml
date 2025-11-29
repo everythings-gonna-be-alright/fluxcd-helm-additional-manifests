@@ -1,0 +1,77 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Chart.yaml'
+      - 'values.yaml'
+      - 'templates/**'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.13.3'
+
+      - name: Extract chart version
+        id: chart_version
+        run: |
+          VERSION=$(grep '^version:' Chart.yaml | awk '{print $2}')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Chart version: $VERSION"
+
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if git rev-parse "v${{ steps.chart_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release v${{ steps.chart_version.outputs.version }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release v${{ steps.chart_version.outputs.version }} does not exist"
+          fi
+
+      - name: Lint Helm chart
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          helm lint .
+
+      - name: Package Helm chart
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          helm package . --destination .deploy
+
+      - name: Create GitHub Release
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.chart_version.outputs.version }}" \
+            .deploy/*.tgz \
+            --title "Release v${{ steps.chart_version.outputs.version }}" \
+            --notes "Helm chart release for additional-manifests v${{ steps.chart_version.outputs.version }}"
+
+      - name: Skip release (already exists)
+        if: steps.check_release.outputs.exists == 'true'
+        run: |
+          echo "Skipping release creation as v${{ steps.chart_version.outputs.version }} already exists"
+
