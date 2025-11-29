@@ -20,3 +20,8 @@ helm install my-release additional-manifests/additional-manifests
 ## Available Charts
 
 - **additional-manifests**: A Helm chart for rendering additional manifests with FluxCD
+
+## Direct Downloads
+
+You can also download charts directly:
+- [Latest Release](https://github.com/everythings-gonna-be-alright/fluxcd-helm-additional-manifests/releases/latest)

@@ -3,12 +3,22 @@ entries:
   additional-manifests:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2025-11-29T23:23:13.954404248Z"
+    created: "2025-11-29T23:39:09.552867782Z"
     description: A Helm chart for rendering additional manifests with FluxCD
-    digest: 473ffc43a0053b27854a9d40b715d77be98ecf9e08b4706e4713a86d88ba59c9
+    digest: 33b470414d626e9684cabe110dd0bc07e363585c7d45b2c0c0d650648f84ec73
     name: additional-manifests
     type: application
     urls:
     - https://everythings-gonna-be-alright.github.io/fluxcd-helm-additional-manifests/additional-manifests-0.1.0.tgz
     version: 0.1.0
-generated: "2025-11-29T23:23:13.953981864Z"
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-11-29T23:39:09.553063438Z"
+    description: A Helm chart for rendering additional manifests with FluxCD
+    digest: 473ffc43a0053b27854a9d40b715d77be98ecf9e08b4706e4713a86d88ba59c9
+    name: additional-manifests
+    type: application
+    urls:
+    - https://everythings-gonna-be-alright.github.io/fluxcd-helm-additional-manifests/charts/additional-manifests-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-11-29T23:39:09.552462133Z"
