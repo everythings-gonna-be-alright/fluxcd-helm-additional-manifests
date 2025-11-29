@@ -1,0 +1,20 @@
+# Additional manifests to be rendered by this Helm chart
+# This chart is designed to work with FluxCD and allows you to include
+# arbitrary Kubernetes manifests that need to be deployed alongside your main application
+#
+# Each manifest should be a complete Kubernetes resource definition
+# You can use Helm templating within the manifests using the tpl function
+
+manifests: []
+  # - apiVersion: v1
+  #   kind: ConfigMap
+  #   metadata:
+  #     name: app-config
+  #     namespace: default
+  #     labels:
+  #       app: myapp
+  #       managed-by: helm
+  #   data:
+  #     APP_ENV: "production"
+  #     LOG_LEVEL: "info"
+  #     DATABASE_HOST: "postgres.database.svc.cluster.local"
